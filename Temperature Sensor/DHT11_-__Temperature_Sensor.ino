@@ -6,11 +6,17 @@
 
 
 DHT dht(DHT_PIN,TIPO_DHT);
-int lastThresholdMeasured = 0;
+float lastThresholdMeasured = 0;
 float lastTempMeasured = 0;
+
+float mapThresholdToCelsius(int threshold){
+  return 0.09775171065 * threshold;
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  pinMode(8,OUTPUT);
   dht.begin();
    
 }
@@ -20,16 +26,31 @@ void loop() {
   float t = dht.readTemperature();
   if(t != lastTempMeasured){
     Serial.print("Temperature changed: ");
-    Serial.println(t);
+    Serial.print(t);
+    Serial.println("°C");
     lastTempMeasured = t;  
   }
 
-  float measuredThreshold = analogRead(A0);
-  if(abs(measuredThreshold - lastThresholdMeasured) > 30 ){
-    Serial.print("Threshold changed: ");  
-    Serial.println(measuredThreshold);
-  }
-  
+//  float measuredThreshold = analogRead(A0);
+//  if(abs(measuredThreshold - lastThresholdMeasured) > 30 ){
+//    Serial.print("Threshold changed: ");  
+//    Serial.println(measuredThreshold);
+//    lastThresholdMeasured = measuredThreshold;
+//  }
+
+   int measuredThreshold = analogRead(A0);
+   float celsius = mapThresholdToCelsius(measuredThreshold);
+   if(abs(celsius - lastThresholdMeasured) > 3){
+      Serial.print("Threshold changed: ");  
+      Serial.print(celsius);
+      Serial.println("°C");
+      lastThresholdMeasured = celsius;
+   }
+   
+   if(lastTempMeasured < celsius){
+     digitalWrite(8, HIGH);
+   }
   
   delay(1000);
+  digitalWrite(8, LOW);
 }
