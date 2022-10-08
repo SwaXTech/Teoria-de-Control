@@ -1,5 +1,5 @@
 #include <HCSR04.h>
-#define A 0.975
+#define A 15
 #define B 10
 
 HCSR04 hc(2, 3);
@@ -8,6 +8,7 @@ float inputSignal = 0;
 float error = 0;
 int timeI = 0, timeF = 0, deltaTime = 0;
 float accError = 0;
+const unsigned int ki = 2;
 
 float propFunction(float x)
 {
@@ -24,7 +25,7 @@ void setup()
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(A1,INPUT);
-  pinMode(13, OUTPUT);
+  pinMode(9, OUTPUT);
 }
 
 void loop()
@@ -35,23 +36,17 @@ void loop()
   inputSignal = analogRead(A1);
   timeF = millis();
 
+  Serial.print("Distancia: ");
+  Serial.println(distance);
+  Serial.print("Input: ");
   Serial.println(propInput(inputSignal));
 
   deltaTime = timeF - timeI; 
 
   error = inputSignal - distance;
   accError += error * deltaTime;
-/*
-  if(error > 10)
-  {
-     analogWrite(9, propFunction(distance));
-  }
-  else
-  {
-    digitalWrite(9,LOW);
-  }*/
-   analogWrite(9, propFunction(distance) + accError);
-  //Serial.println(inputSignal);
+
+  analogWrite(9, propFunction(error) + ki * accError);
   
   timeI = millis();
 }
